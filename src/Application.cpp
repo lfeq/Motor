@@ -18,6 +18,17 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+void processInput(GLFWwindow* window, glm::vec3& translation) {
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+		translation.y += 0.01f;
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+		translation.y -= 0.01f;
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+		translation.x -= 0.01f;
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+		translation.x += 0.01f;
+}
+
 int main(void)
 {
 	GLFWwindow* window;
@@ -40,7 +51,6 @@ int main(void)
 
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
-
 	glfwSwapInterval(1);
 
 	if (glewInit() != GLEW_OK) {
@@ -48,6 +58,7 @@ int main(void)
 	}
 
 	std::cout << glGetString(GL_VERSION) << std::endl;
+
 	{
 		float positions[] = {
 			-0.5f, -0.5f, 0.0f, 0.0f,
@@ -56,7 +67,7 @@ int main(void)
 			-0.5f,  0.5f, 0.0f, 1.0f
 		};
 
-		unsigned int indeces[] = {
+		unsigned int indices[] = {
 			0, 1, 2,
 			2, 3, 0
 		};
@@ -72,14 +83,13 @@ int main(void)
 		layout.Push<float>(2);
 		va.AddBuffer(vb, layout);
 
-		IndexBuffer ib(indeces, 6);
+		IndexBuffer ib(indices, 6);
 
 		glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
 
 		Shader shader("res/Shaders/basic.shader");
 		shader.Bind();
 		shader.SetUniform4f("u_Color", 0.9f, 0.3f, 0.8f, 1.0f);
-		shader.SetUniformMat4f("u_MVP", proj);
 
 		Texture texture("res/Textures/Mario.png");
 		texture.Bind();
@@ -95,9 +105,20 @@ int main(void)
 		float r = 0.0f;
 		float increment = 0.05f;
 
+		glm::vec3 translation(0.0f, 0.0f, 0.0f);
+
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
+			/* Process input */
+			processInput(window, translation);
+
+			/* Update MVP matrix */
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
+			glm::mat4 mvp = proj * model;
+			shader.Bind();
+			shader.SetUniformMat4f("u_MVP", mvp);
+
 			/* Render here */
 			renderer.Clear();
 
@@ -105,10 +126,9 @@ int main(void)
 			shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
 
 			renderer.Draw(va, ib, shader);
-			GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
 			if (r > 1.0f) {
-				increment = -0.5f;
+				increment = -0.05f;
 			}
 			else if (r < 0.0f) {
 				increment = 0.05f;
@@ -123,6 +143,7 @@ int main(void)
 			GLCall(glfwPollEvents());
 		}
 	}
+
 	glfwTerminate();
 	return 0;
 }
