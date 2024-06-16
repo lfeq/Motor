@@ -18,6 +18,12 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+/**
+ * @brief Processes input for the given GLFW window and modifies the translation vector.
+ *
+ * @param window Pointer to the GLFW window.
+ * @param translation Reference to the translation vector.
+ */
 void processInput(GLFWwindow* window, glm::vec3& translation) {
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 		translation.y += 0.01f;
@@ -29,6 +35,12 @@ void processInput(GLFWwindow* window, glm::vec3& translation) {
 		translation.x += 0.01f;
 }
 
+/**
+ * @brief Main function that initializes GLFW, creates a window, sets up OpenGL context,
+ * and runs the render loop until the window is closed.
+ *
+ * @return int Returns 0 on successful execution, -1 on error.
+ */
 int main(void)
 {
 	GLFWwindow* window;
